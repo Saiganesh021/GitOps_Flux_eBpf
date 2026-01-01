@@ -4,12 +4,13 @@ metadata:
   name: monitoring
   namespace: monitoring
 spec:
-  chart:
-    spec:
-      chart: kube-prometheus-stack
-      version: "53.3.0"
-      sourceRef:
-        kind: HelmRepository
-        name: prometheus-community
-        namespace: flux-system
+chart:
+  spec:
+    chart: kube-prometheus-stack
+    version: "60.0.0"
+    sourceRef:
+      kind: HelmRepository
+      name: prometheus-community
+      namespace: flux-system
   interval: 5m
+
