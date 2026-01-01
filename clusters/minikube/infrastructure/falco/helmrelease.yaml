@@ -4,13 +4,25 @@ metadata:
   name: falco
   namespace: kube-system
 spec:
+  interval: 5m
   chart:
     spec:
       chart: falco
-      version: "1.14.0"
+      version: "1.14.0" # chart version is fine
       sourceRef:
         kind: HelmRepository
         name: falcosecurity
         namespace: flux-system
-  interval: 5m
-
+  values:
+    driver:
+      kind: modern-bpf   # Critical for 2026 kernels
+    image:
+      repository: falcosecurity/falco
+      tag: 0.38.0        # Modern image compatible with K8s v1.34+
+    customRules:
+      rules-custom.yaml: |
+        - rule: Shell inside container
+          desc: Detect shell execution in a container
+          condition: container and proc.name in (bash, sh, zsh)
+          output: Shell spawned in container (user=%user.name container=%container.name)
+          priority: WARNING
