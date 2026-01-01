@@ -9,44 +9,37 @@ spec:
   chart:
     spec:
       chart: falco
-      version: ">=7.0.2"       # Pin to modern 2026-compatible chart
+      version: "7.0.2"
       sourceRef:
         kind: HelmRepository
         name: falcosecurity
         namespace: flux-system
+
   values:
-    # 1. Use the Modern BPF engine (bundled in the 0.38.0+ binary)
+    # 1️⃣ Force modern eBPF (NO kernel modules)
     driver:
       kind: modern-bpf
 
-    # 2. Disable the falcoctl sidecar to fix "read-only filesystem" errors
+    # 2️⃣ Disable falcoctl completely (fixes read-only FS)
     falcoctl:
-      artifact:
-        install:
-          enabled: false
-        follow:
-          enabled: false
+      enabled: false
 
-    # 3. Disable external plugins to prevent API version mismatch
-    services:
-      plugins: []
-    load_plugins: []
+    # 3️⃣ Disable plugins the CORRECT way (no Helm breakage)
+    falco:
+      load_plugins: false
+      engine: modern_ebpf
+      privileged: true
+      json_output: true
+      log_stderr: true
+      log_level: info
 
-    # 4. Use the modern Falco image
+    # 4️⃣ Pin modern Falco image (2026 compatible)
     image:
       repository: falcosecurity/falco
       tag: 0.38.0
       pullPolicy: IfNotPresent
 
-    # 5. Runtime configuration for WSL2 / container environments
-    falco:
-      privileged: true
-      engine: modern_ebpf
-      json_output: true
-      log_stderr: true
-      log_level: info
-
-    # 6. Custom security rule
+    # 5️⃣ Custom detection rule
     customRules:
       rules-custom.yaml: |
         - rule: Shell inside container
