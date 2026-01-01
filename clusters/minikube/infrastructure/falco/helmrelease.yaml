@@ -5,33 +5,52 @@ metadata:
   namespace: kube-system
 spec:
   interval: 5m
+  releaseName: falco
   chart:
     spec:
       chart: falco
-      version: ">=1.14.0"
+      version: ">=7.0.2"       # Pin to modern 2026-compatible chart
       sourceRef:
         kind: HelmRepository
         name: falcosecurity
         namespace: flux-system
   values:
-    # 1. Force the modern engine bundled in the binary (CO-RE)
+    # 1. Use the Modern BPF engine (bundled in the 0.38.0+ binary)
     driver:
       kind: modern-bpf
-    
-    # 2. Upgrade the Falco binary to 2026 standard (v0.38+)
+
+    # 2. Disable the falcoctl sidecar to fix "read-only filesystem" errors
+    falcoctl:
+      artifact:
+        install:
+          enabled: false
+        follow:
+          enabled: false
+
+    # 3. Disable external plugins to prevent API version mismatch
+    services:
+      plugins: []
+    load_plugins: []
+
+    # 4. Use the modern Falco image
     image:
       repository: falcosecurity/falco
       tag: 0.38.0
-    
-    # 3. Enable required security contexts for BPF injection
+      pullPolicy: IfNotPresent
+
+    # 5. Runtime configuration for WSL2 / container environments
     falco:
       privileged: true
+      engine: modern_ebpf
+      json_output: true
+      log_stderr: true
+      log_level: info
 
-    # 4. Your existing custom rules
+    # 6. Custom security rule
     customRules:
       rules-custom.yaml: |
         - rule: Shell inside container
           desc: Detect shell execution in a container
           condition: container and proc.name in (bash, sh, zsh)
-          output: Shell spawned in container (user=%user.name container=%container.name)
+          output: "Shell spawned in container (user=%user.name container=%container.name)"
           priority: WARNING
