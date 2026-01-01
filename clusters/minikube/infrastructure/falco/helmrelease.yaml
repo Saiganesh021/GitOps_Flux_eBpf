@@ -8,17 +8,21 @@ spec:
   chart:
     spec:
       chart: falco
-      version: "1.14.0" # chart version is fine
+      version: "1.14.0"
       sourceRef:
         kind: HelmRepository
         name: falcosecurity
         namespace: flux-system
   values:
     driver:
-      kind: modern-bpf   # Critical for 2026 kernels
-    image:
-      repository: falcosecurity/falco
-      tag: 0.38.0        # Modern image compatible with K8s v1.34+
+      kind: modern-bpf
+    
+    # IMPORTANT: Clear out legacy extraArgs if they exist in your yaml
+    extraArgs: [] 
+
+    # In modern versions, K8s sync is handled via the config file, not flags
+    tty: true
+    
     customRules:
       rules-custom.yaml: |
         - rule: Shell inside container
