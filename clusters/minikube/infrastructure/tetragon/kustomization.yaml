@@ -1,14 +1,4 @@
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
+apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-metadata:
-  name: infrastructure
-  namespace: flux-system
-spec:
-  interval: 5m0s
-  path: "./infrastructure"
-  prune: true
-  wait: true
-  timeout: 5m        # increase timeout to avoid "context deadline exceeded"
-  dependsOn:
-    - name: flux-system
-      namespace: flux-system
+resources:
+  - helmrelease.yaml
